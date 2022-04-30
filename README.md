@@ -1,5 +1,9 @@
-# 
+# OneDayTimeSeriesForecastTask 
+End2End timeseries forecasting task using Python: Prophet + Streamlit(UI+back)
+![](imgs/app.png)
 
+- `eda.ipynb` - notebook with analysis and model comparing
+- `demo.py` - streamlit application
 
 ## Useful commands
 ```bash
