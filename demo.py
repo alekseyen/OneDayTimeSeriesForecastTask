@@ -191,8 +191,7 @@ if __name__ == "__main__":
                                                                                            horizon, period)
 
             st.pyplot(plot_metrics_rmse)
-            st.pyplot(plot_metrics_mape)
-            # st.write(metics_df)
+            st.write(metics_df.to_dict())
 
     elif option == 'Exponential smoothing':
         forecast_exp_smoothing(train, test)
