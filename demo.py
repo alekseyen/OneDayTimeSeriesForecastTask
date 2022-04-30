@@ -31,7 +31,6 @@ def prophet_data_clean(df, train):
     return df_prophet, df_prophet_train
 
 
-@st.experimental_memo(ttl=60*5, suppress_st_warning=True)
 def prophet_forecast(df, train, test):
     df, df_prophet_train = prophet_data_clean(df, train)
 
@@ -43,7 +42,7 @@ def prophet_forecast(df, train, test):
 
     if st.checkbox('Show raw FORECAST data'):
         st.subheader('Raw FORECAST data')
-        st.dataframe(forecast.iloc[-len(test):])
+        st.write(forecast.iloc[-len(test):])
 
     ## ------ full plot
     st.write('Plot with forecasting')
@@ -53,22 +52,8 @@ def prophet_forecast(df, train, test):
 
     ## ------ only forecast plot
 
-    # fig = prophetModel.plot(forecast)
-    # ax = fig.gca()
-    # ax.set_xlim(left=train.index[-1000], right=test.index.max())
-    #
-    # ax.plot(test.index, test.num_orders, linewidth=0.1, color='green')
-    # st.write(fig)
-    #
-    # fig = prophetModel.plot(forecast)
-    # ax = fig.gca()
-    # ax.set_xlim(left=train.index[-1000], right=test.index.max())
-    # ax.plot(test.index, test.num_orders, linewidth=0.1, color='green')
-    # st.pyplot(fig)
-
     fig, ax = plt.subplots()
     ax.plot(forecast.ds, forecast['yhat'])
-    st.write(train)
     ax.set_xlim(left=train.datetime.iloc[-1000], right=test.datetime.max())
     ax.plot(test.datetime, test.num_orders, linewidth=0.1, color='green')
     fig.tight_layout()
@@ -80,7 +65,6 @@ def prophet_forecast(df, train, test):
     st.write(components_plot)
 
 
-@st.experimental_memo
 def prophet_cross_validation(df, train, initial, horizon, period):
     df, df_prophet_train = prophet_data_clean(df, train)
 
@@ -93,8 +77,6 @@ def prophet_cross_validation(df, train, initial, horizon, period):
     period = f'{period} hours'
 
     m = Prophet().fit(df)
-
-    print('suka')
 
     df_cv = cross_validation(m,
                              initial=initial,
@@ -180,8 +162,10 @@ if __name__ == "__main__":
     option = window_selection_c.selectbox('Select model for prediction', ['Prophet', 'Exponential smoothing'],
                                           index=0)
 
-    if option == 'Prophet':  # and st.session_state.TRAIN_JOB:
-        prophet_forecast(df_taxi, train, test)
+    if option == 'Prophet':
+        with st.spinner('Wait for prophet forecast. It will continue less than 40 seconds ...'):
+            prophet_forecast(df_taxi, train, test)
+
         st.title('Cross validation metrics with default parameters')
 
         window_selection_c.markdown("### Cross validation Prophet")
@@ -200,13 +184,15 @@ if __name__ == "__main__":
             label="Start cross validation",
             key='CROSS_VALIDATION'
         )
+
         if st.session_state.CROSS_VALIDATION:
-            with st.spinner('Wait for cross validation...'):
-                metics_df, plot_metrics_rmse, plot_metrics_mape= prophet_cross_validation(df_taxi, train, initial, horizon, period)
+            with st.spinner('Wait for cross validation... For 1 to 3 minutes'):
+                metics_df, plot_metrics_rmse, plot_metrics_mape = prophet_cross_validation(df_taxi, train, initial,
+                                                                                           horizon, period)
 
             st.pyplot(plot_metrics_rmse)
             st.pyplot(plot_metrics_mape)
-            st.dataframe(metics_df.copy())
+            # st.write(metics_df)
 
     elif option == 'Exponential smoothing':
         forecast_exp_smoothing(train, test)
